@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Open Source Intelligence (OSINT) — The Watchtower</title>
+<meta name="description" content="OSINT — Open Source Intelligence: a hands-on, interactive classroom companion covering the intelligence cycle, search dorking, username pivoting, infrastructure recon, GEOINT and investigative ethics.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0f1c;
+  --bg2:#0e1526;
+  --panel:#131c30;
+  --panel2:#0f1728;
+  --line:#243149;
+  --brass:#c9a15f;
+  --brass-dim:#8a713f;
+  --amber:#f2a341;
+  --red:#e0503a;
+  --green:#3fae74;
+  --blue:#5b9dd9;
+  --ink:#eef1f6;
+  --ink-dim:#93a3bd;
+  --ink-faint:#5b6a86;
+  --mono:'JetBrains Mono', ui-monospace, monospace;
+  --disp:'Space Grotesk', sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth; scroll-padding-top:76px;}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--disp);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--amber); color:#0a0f1c;}
+a{color:inherit;}
+img{max-width:100%;}
+.wrap{max-width:1080px; margin:0 auto; padding:0 24px;}
+.wrap-narrow{max-width:760px; margin:0 auto; padding:0 24px;}
+
+/* ---------- top nav ---------- */
+.topnav{
+  position:sticky; top:0; z-index:50;
+  background:rgba(10,15,28,.86); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.topnav-inner{
+  max-width:1080px; margin:0 auto; padding:12px 24px;
+  display:flex; align-items:center; gap:18px; overflow-x:auto;
+  scrollbar-width:none;
+}
+.topnav-inner::-webkit-scrollbar{display:none;}
+.brand{
+  display:flex; align-items:center; gap:9px; font-family:var(--mono);
+  font-size:13px; color:var(--brass); white-space:nowrap; padding-right:8px;
+  border-right:1px solid var(--line);
+}
+.brand .dot{width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.navlinks{display:flex; gap:2px; white-space:nowrap;}
+.navlinks a{
+  font-family:var(--mono); font-size:12.5px; color:var(--ink-dim);
+  text-decoration:none; padding:7px 11px; border-radius:5px; transition:color .15s, background .15s;
+}
+.navlinks a:hover{color:var(--ink); background:var(--panel);}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative; min-height:92vh; display:flex; flex-direction:column;
+  justify-content:center; align-items:center; text-align:center;
+  padding:110px 24px 80px; overflow:hidden;
+  background:
+    radial-gradient(ellipse 900px 500px at 50% 0%, #1a2540 0%, transparent 60%),
+    linear-gradient(180deg, var(--bg) 0%, #060911 100%);
+}
+.hero::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image:radial-gradient(ellipse 700px 500px at 50% 30%, black, transparent);
+}
+/* radar rig — the watchtower centrepiece */
+.radar-rig{position:relative; z-index:2; margin:0 auto 36px; display:flex; flex-direction:column; align-items:center;}
+.radar-scope{
+  position:relative; width:122px; height:122px; border-radius:50%;
+  background:radial-gradient(circle at 50% 42%, #122239 0%, #0d1424 68%);
+  border:2px solid var(--brass-dim); overflow:hidden;
+  box-shadow:0 14px 38px rgba(0,0,0,.55), inset 0 0 26px rgba(63,174,116,.09);
+}
+.radar-ring{position:absolute; inset:17%; border-radius:50%; border:1px solid rgba(63,174,116,.24);}
+.radar-ring.r2{inset:36%;}
+.radar-cross-h{position:absolute; top:50%; left:5%; right:5%; height:1px; background:rgba(63,174,116,.16);}
+.radar-cross-v{position:absolute; left:50%; top:5%; bottom:5%; width:1px; background:rgba(63,174,116,.16);}
+.radar-sweep{
+  position:absolute; inset:0; border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(63,174,116,.55), rgba(63,174,116,.14) 58deg, transparent 84deg);
+  animation:sweep 4.2s linear infinite;
+}
+@keyframes sweep{to{transform:rotate(360deg);}}
+.blip{position:absolute; width:7px; height:7px; border-radius:50%; background:var(--green); opacity:.12; animation:blipFlash 4.2s linear infinite;}
+@keyframes blipFlash{
+  0%{opacity:.12; box-shadow:none;}
+  6%{opacity:1; box-shadow:0 0 12px 3px rgba(63,174,116,.85);}
+  30%{opacity:.4; box-shadow:0 0 4px rgba(63,174,116,.3);}
+  62%,100%{opacity:.12; box-shadow:none;}
+}
+.blip.b1{top:24%; left:31%; animation-delay:.42s;}
+.blip.b2{top:57%; left:67%; animation-delay:1.68s;}
+.blip.b3{top:68%; left:37%; animation-delay:2.86s;}
+.radar-pole{width:6px; height:58px; background:linear-gradient(180deg,var(--brass),var(--brass-dim)); border-radius:2px;}
+.radar-base{width:38px; height:8px; border-radius:4px; background:var(--brass-dim); box-shadow:0 8px 18px rgba(0,0,0,.5);}
+.eyebrow{
+  font-family:var(--mono); font-size:12.5px; letter-spacing:.02em; color:var(--brass);
+  margin-bottom:18px; z-index:2; position:relative;
+}
+h1.title{
+  font-size:clamp(2.4rem, 6vw, 4.4rem); line-height:1.04; margin:0 0 22px; font-weight:700;
+  max-width:920px; z-index:2; position:relative; letter-spacing:-.01em;
+}
+h1.title em{font-style:normal; color:var(--amber);}
+.hero-sub{
+  font-size:clamp(1rem,2vw,1.2rem); color:var(--ink-dim); max-width:640px; line-height:1.6;
+  z-index:2; position:relative; margin-bottom:14px;
+}
+.hero-note{
+  font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); z-index:2; position:relative;
+  margin-bottom:30px; display:flex; gap:14px; flex-wrap:wrap; justify-content:center;
+}
+.hero-note b{color:var(--green); font-weight:500;}
+.hero-cta{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; z-index:2; position:relative;}
+.btn{
+  font-family:var(--mono); font-size:13px; padding:12px 20px; border-radius:7px; border:1px solid var(--line);
+  background:var(--panel); color:var(--ink); cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+  transition:transform .15s, border-color .15s, background .15s;
+}
+.btn:hover{border-color:var(--brass); transform:translateY(-1px);}
+.btn.primary{background:var(--amber); color:#1a1206; border-color:var(--amber); font-weight:700;}
+.btn.primary:hover{background:#ffb35b;}
+.btn.small{padding:8px 13px; font-size:12px;}
+.btn.danger{border-color:var(--red);}
+.btn.danger:hover{background:rgba(224,80,58,.12);}
+.btn.go{border-color:var(--green);}
+.btn.go:hover{background:rgba(63,174,116,.12);}
+/* ---------- sections ---------- */
+section{padding:88px 0;}
+section.alt{background:var(--bg2);}
+.section-head{margin-bottom:34px;}
+.kicker{
+  font-family:var(--mono); font-size:12px; color:var(--brass); letter-spacing:.03em;
+  display:flex; align-items:center; gap:10px; margin-bottom:12px;
+}
+.kicker .tag{
+  border:1px solid var(--brass-dim); padding:2px 8px; border-radius:4px; color:var(--brass);
+}
+h2{font-size:clamp(1.7rem,3.4vw,2.4rem); margin:0 0 14px; font-weight:700; letter-spacing:-.01em;}
+h3{font-size:1.25rem; margin:0 0 10px; font-weight:600;}
+p{line-height:1.7; color:#c7d1e3; font-size:1.02rem; margin:0 0 16px;}
+.lede{font-size:1.12rem; color:var(--ink-dim); max-width:680px;}
+b, strong{color:var(--ink); font-weight:600;}
+
+.grid2{display:grid; grid-template-columns:1.1fr .9fr; gap:44px; align-items:start;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media(max-width:820px){.grid2{grid-template-columns:1fr;} .grid3{grid-template-columns:1fr;}}
+
+/* real life callout */
+.plaque{
+  background:linear-gradient(180deg,#1a2338,#141d30);
+  border:1px solid var(--line); border-left:3px solid var(--brass);
+  border-radius:8px; padding:18px 20px; margin:18px 0;
+}
+.plaque .lbl{font-family:var(--mono); font-size:11px; color:var(--brass); margin-bottom:8px; display:block;}
+.plaque p{margin:0; color:#d7deec; font-size:.98rem;}
+.plaque.blue{border-left-color:var(--blue);} .plaque.blue .lbl{color:var(--blue);}
+.plaque.red{border-left-color:var(--red);} .plaque.red .lbl{color:var(--red);}
+.plaque.green{border-left-color:var(--green);} .plaque.green .lbl{color:var(--green);}
+
+/* console/panel used for simulations */
+.console{
+  background:var(--panel); border:1px solid var(--line); border-radius:14px;
+  padding:22px; position:relative; box-shadow:0 20px 50px rgba(0,0,0,.35); margin-top:26px;
+}
+.console::before{
+  content:''; position:absolute; top:0; left:22px; right:22px; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,161,95,.5),transparent);
+}
+.console-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;}
+.console-title{font-family:var(--mono); font-size:12.5px; color:var(--brass); display:flex; align-items:center; gap:8px;}
+.led{width:7px; height:7px; border-radius:50%; background:var(--ink-faint);}
+.led.live{background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.6s infinite;}
+.sim-tag{font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); border:1px dashed var(--line); padding:3px 8px; border-radius:20px;}
+.controls{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px;}
+.readout-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;}
+.readout{
+  font-family:var(--mono); background:var(--panel2); border:1px solid var(--line); border-radius:7px;
+  padding:9px 13px; font-size:12.5px; color:var(--ink-dim); flex:1; min-width:110px;
+}
+.readout b{display:block; font-size:1.35rem; color:var(--ink); font-weight:700; margin-top:3px;}
+.readout.red b{color:var(--red);} .readout.green b{color:var(--green);} .readout.amber b{color:var(--amber);}
+.stage{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:18px; min-height:120px;}
+.log{
+  font-family:var(--mono); font-size:12px; color:var(--ink-dim); max-height:170px; overflow-y:auto;
+  background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:10px 13px; margin-top:14px;
+}
+.log div{padding:2px 0; border-bottom:1px dashed rgba(255,255,255,.05);}
+.log div:last-child{border-bottom:none;}
+.log .ok{color:var(--green);} .log .bad{color:var(--red);} .log .info{color:var(--amber);}
+.hint{font-size:12.5px; color:var(--ink-faint); margin-top:10px; line-height:1.55;}
+
+/* generic pill / badge */
+.pill{font-family:var(--mono); font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid var(--line); color:var(--ink-dim);}
+.pill.on{border-color:var(--green); color:var(--green);}
+.pill.off{border-color:var(--ink-faint); color:var(--ink-faint);}
+.pill.warn{border-color:var(--amber); color:var(--amber);}
+.pill.bad{border-color:var(--red); color:var(--red);}
+
+/* chips (dork builder / audit) */
+.chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px;}
+.chip{
+  font-family:var(--mono); font-size:12px; border:1px solid var(--line); border-radius:6px;
+  padding:8px 12px; background:var(--panel2); color:var(--ink-dim); cursor:pointer;
+  transition:border-color .15s, color .15s, background .15s; user-select:none;
+}
+.chip:hover{border-color:var(--brass); color:var(--ink);}
+.chip.on{border-color:var(--green); color:var(--green); background:rgba(63,174,116,.1);}
+.chip.done{border-color:var(--green); color:var(--green); background:rgba(63,174,116,.1);}
+.chip.done::after{content:' ✓';}
+.query-box{
+  font-family:var(--mono); background:#0b1120; border:1px solid var(--line); border-radius:8px;
+  padding:12px 14px; color:var(--amber); font-size:13px; word-break:break-all; min-height:46px; margin-bottom:14px;
+}
+.query-box .placeholder{color:var(--ink-faint);}
+.finding{display:flex; gap:12px; padding:10px 4px; border-bottom:1px dashed rgba(255,255,255,.06); align-items:flex-start;}
+.finding:last-child{border-bottom:none;}
+.finding .ic{font-size:14px; line-height:1.3;}
+.finding .t{font-size:13px; color:var(--ink); line-height:1.45;}
+.finding .u{font-family:var(--mono); font-size:11px; color:var(--green); word-break:break-all;}
+
+/* meter */
+.meter{height:10px; border-radius:6px; background:#0b1120; border:1px solid var(--line); overflow:hidden; margin:6px 0 14px;}
+.meter i{display:block; height:100%; width:0%; background:var(--green); transition:width .5s, background .5s;}
+
+/* platform rows (username hunter) */
+.plat{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:10px 12px; border:1px solid var(--line); border-radius:8px; background:var(--panel2); margin-bottom:8px;
+  transition:border-color .3s, opacity .3s;
+}
+.plat .nm{font-family:var(--mono); font-size:12.5px; color:var(--ink);}
+.plat .dt{font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-align:right;}
+.plat.pending{opacity:.4;}
+.plat.found{border-color:rgba(63,174,116,.55);}
+.plat.found .dt{color:var(--green);}
+.plat.absent .dt{color:var(--ink-faint);}
+
+/* domain recon cards */
+.cards{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+@media(max-width:700px){.cards{grid-template-columns:1fr;}}
+.card{background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:14px 16px;}
+.card h4{margin:0 0 8px; font-family:var(--mono); font-size:11.5px; color:var(--brass); font-weight:500; letter-spacing:.02em;}
+.card .kv{display:flex; justify-content:space-between; gap:12px; font-size:12.5px; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,.05);}
+.card .kv:last-child{border-bottom:none;}
+.card .kv span{color:var(--ink-dim);}
+.card .kv b{font-family:var(--mono); color:var(--ink); font-weight:500; text-align:right; word-break:break-all;}
+.card .empty{font-family:var(--mono); font-size:11.5px; color:var(--ink-faint);}
+
+/* photo verification bench */
+.photo-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:start;}
+@media(max-width:820px){.photo-grid{grid-template-columns:1fr;}}
+.photo{position:relative; aspect-ratio:16/10; border-radius:8px; overflow:hidden; border:1px solid var(--line);
+  background:linear-gradient(180deg,#31456b 0%,#4a5c82 44%,#2a3850 46%,#1a2436 100%);}
+.photo .sun{position:absolute; top:13%; left:66%; width:26px; height:26px; border-radius:50%;
+  background:#ffd27d; box-shadow:0 0 20px rgba(255,210,125,.85);}
+.photo .tower{position:absolute; top:32%; left:58%; width:16px; height:14%; background:#0e1626; border-radius:2px;}
+.photo .shadow{position:absolute; top:60%; left:30%; width:16%; height:7px; border-radius:3px;
+  background:rgba(5,8,15,.55); transform:rotate(14deg); filter:blur(1px);}
+.photo .water{position:absolute; bottom:0; left:0; right:0; height:16%;
+  background:repeating-linear-gradient(180deg, rgba(91,157,217,.25) 0 2px, transparent 2px 7px);}
+.photo .cap{
+  position:absolute; bottom:0; left:0; right:0; padding:7px 10px;
+  background:rgba(8,12,22,.82); border-top:1px solid var(--line);
+  font-family:var(--mono); font-size:10.5px; color:var(--ink-dim);
+}
+.photo .cap b{color:var(--amber); font-weight:500;}
+
+/* two-col table */
+table{width:100%; border-collapse:collapse; margin:18px 0; font-size:.94rem;}
+th,td{text-align:left; padding:11px 13px; border-bottom:1px solid var(--line); overflow-wrap:break-word; word-break:break-word;}
+th{font-family:var(--mono); font-size:11.5px; color:var(--brass); font-weight:500; letter-spacing:.02em;}
+td{color:#cdd6e6;}
+tr.hl td{background:rgba(242,163,65,.06);}
+@media(max-width:700px){ table{display:block; overflow-x:auto;} }
+
+.pcell{display:flex; align-items:center; gap:8px;}
+.dot-sm{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+
+.flow{display:flex; align-items:center; gap:0; flex-wrap:wrap; margin:22px 0;}
+.flow-step{
+  background:var(--panel2); border:1px solid var(--line); border-radius:8px; padding:12px 16px; font-size:.9rem;
+  color:var(--ink-dim); min-width:120px; text-align:center;
+}
+.flow-step b{display:block; color:var(--ink); font-size:.85rem; margin-bottom:3px; font-family:var(--mono);}
+.flow-arrow{color:var(--brass); padding:0 10px; font-size:18px;}
+@media(max-width:700px){.flow{flex-direction:column; align-items:stretch;} .flow-arrow{transform:rotate(90deg); align-self:center; padding:4px;}}
+
+/* cycle stepper */
+.phase-dots{display:flex; gap:8px; flex-wrap:wrap;}
+.pdot{font-family:var(--mono); font-size:11px; padding:5px 10px; border-radius:20px; border:1px solid var(--line); color:var(--ink-faint); cursor:pointer; transition:all .2s;}
+.pdot.cur{border-color:var(--green); color:var(--green); background:rgba(63,174,116,.1);}
+.pdot.past{border-color:var(--brass-dim); color:var(--brass);}
+.phase-card{border-left:3px solid var(--brass); padding-left:16px; margin:14px 0 4px;}
+.phase-card .ph-name{font-size:1.2rem; font-weight:700; color:var(--ink); margin-bottom:4px;}
+.phase-card .ph-goal{font-size:.98rem; color:#c7d1e3; line-height:1.6; margin-bottom:8px;}
+.phase-card .ph-pit{font-family:var(--mono); font-size:12px; color:var(--red);}
+
+/* verdict */
+.verdict{display:none; border:1px solid var(--red); background:rgba(224,80,58,.1); color:var(--red);
+  border-radius:8px; padding:12px 14px; font-size:13.5px; margin-top:14px; line-height:1.6;}
+.verdict.show{display:block;}
+.verdict.ok{border-color:var(--green); background:rgba(63,174,116,.1); color:var(--green);}
+
+footer{padding:60px 0 80px; border-top:1px solid var(--line); text-align:center;}
+footer p{color:var(--ink-faint); font-size:.9rem;}
+
+.toc-strip{display:flex; flex-wrap:wrap; gap:8px; margin-top:20px; justify-content:center;}
+.toc-strip a{
+  font-family:var(--mono); font-size:11.5px; color:var(--ink-dim); text-decoration:none; border:1px solid var(--line);
+  padding:6px 11px; border-radius:20px; transition:all .15s;
+}
+.toc-strip a:hover{color:var(--brass); border-color:var(--brass);}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="topnav-inner">
+    <div class="brand"><span class="dot"></span>SEC&nbsp;LAB · OSINT</div>
+    <div class="navlinks">
+      <a href="#intro">What is OSINT</a>
+      <a href="#family">INT Family</a>
+      <a href="#cycle">Intel Cycle</a>
+      <a href="#posture">Passive vs Active</a>
+      <a href="#dorking">Dorking</a>
+      <a href="#people">People</a>
+      <a href="#infra">Infrastructure</a>
+      <a href="#geoint">GEOINT</a>
+      <a href="#tools">Toolkit</a>
+      <a href="#ethics">Ethics &amp; OPSEC</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="radar-rig">
+    <div class="radar-scope">
+      <div class="radar-ring"></div>
+      <div class="radar-ring r2"></div>
+      <div class="radar-cross-h"></div>
+      <div class="radar-cross-v"></div>
+      <div class="radar-sweep"></div>
+      <div class="blip b1"></div>
+      <div class="blip b2"></div>
+      <div class="blip b3"></div>
+    </div>
+    <div class="radar-pole"></div>
+    <div class="radar-base"></div>
+  </div>
+  <div class="eyebrow">CYBER SECURITY · UNIT: OPEN SOURCE INTELLIGENCE (OSINT)</div>
+  <h1 class="title">No exploits. No agents.<br><em>Just open sources, read properly.</em></h1>
+  <p class="hero-sub">
+    Every target announces itself — in job posts, DNS records, conference bios, photo metadata and forgotten
+    spreadsheets. <b>Open Source Intelligence</b> is the discipline of turning that public noise into a
+    verified, decision-ready picture without ever touching the target. Each concept below comes with a real-life
+    case and a small working simulation you can operate yourself, so you can practise the <b>intelligence
+    cycle</b>, build <b>Google dorks</b>, pivot on a <b>username</b>, and learn to catch a repurposed photo —
+    all before your first real engagement.
+  </p>
+  <div class="hero-note">
+    <span><b>●</b> 100% client-side</span>
+    <span><b>●</b> every lookup is simulated for learning</span>
+    <span><b>●</b> collect ethically, always</span>
+  </div>
+  <div class="hero-cta">
+    <a href="#intro" class="btn primary">Enter the watchtower ↓</a>
+    <a href="#dorking" class="btn">Jump to the Dork Builder</a>
+  </div>
+</header>
+
+<!-- ================= 01 WHAT IS OSINT ================= -->
+<section id="intro">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">01</span> Introduction to OSINT</div>
+      <h2>Intelligence that anyone with a browser can collect</h2>
+      <p class="lede">Open Source Intelligence — OSINT — is the disciplined collection and analysis of
+      <b>publicly available information</b> to answer a specific question. The material is out in the open;
+      the skill is finding it, verifying it, and connecting it into a conclusion.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p>There is a ladder every analyst climbs. A single tweet is <b>data</b>. Two hundred tweets from the
+        same account, sorted by time and topic, become <b>information</b>. When you can finally say — with
+        sources, timestamps and a confidence level — "this account was run by the marketing team of company X
+        between March and June," you have produced <b>intelligence</b>. OSINT is not browsing; it is the
+        controlled production of that last rung.</p>
+        <p>The sources are everywhere: news archives and press releases, social platforms, company registries
+        and court records, property and patent databases, flight and ship trackers, job boards, leaked breach
+        corpora, satellite imagery — even the target's own careers page. Security teams use it to map attacker
+        infrastructure, journalists to verify war footage, recruiters to sanity-check candidates, and red
+        teams to complete the first phase of nearly every engagement <b>without sending a single packet</b>
+        to the target.</p>
+        <table>
+          <tr><th>Rung</th><th>What it looks like</th></tr>
+          <tr><td class="pcell"><span class="dot-sm" style="background:var(--ink-faint)"></span>Data</td><td>A raw fact with no context: one photo, one tweet, one row in a database</td></tr>
+          <tr><td class="pcell"><span class="dot-sm" style="background:var(--blue)"></span>Information</td><td>Data organised to describe something: a profile, a timeline, a list of subdomains</td></tr>
+          <tr><td class="pcell"><span class="dot-sm" style="background:var(--amber)"></span>Intelligence</td><td>Information analysed against a question, with sources, confidence and implications</td></tr>
+        </table>
+      </div>
+      <div class="plaque">
+        <span class="lbl">REAL LIFE — THE JOB POSTING</span>
+        <p>A startup whose website mentions only a Berlin office quietly lists a job ad: "Kubernetes engineer,
+        Singapore site." An analyst reads that single public ad and concludes the company is building an
+        APAC data centre — months before any press release. The ad was boring, public, and sitting in plain
+        sight. That is OSINT: <i>nobody broke in; somebody just read carefully.</i></p>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:34px;">
+      <div class="plaque green" style="margin:0;">
+        <span class="lbl">WHY IT'S POWERFUL</span>
+        <p>It is cheap, fast, mostly legal, and leaves <b>no footprint on the target</b> — an investigator can
+        map an organisation for weeks without the target's firewalls ever noticing a thing.</p>
+      </div>
+      <div class="plaque red" style="margin:0;">
+        <span class="lbl">WHY IT'S DANGEROUS</span>
+        <p>Public data can be stale, wrong or deliberately planted. Everything must be <b>verified from two
+        independent sources</b> before it supports a conclusion — or a reputation.</p>
+      </div>
+      <div class="plaque" style="margin:0;">
+        <span class="lbl">WHO DOES IT</span>
+        <p>Threat-intel analysts, penetration testers, journalists (Bellingcat), law enforcement, HR and
+        due-diligence teams, election monitors — and, as you'll see in section 10, criminals too. Method is
+        neutral; ethics decide the rest.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 02 INT FAMILY ================= -->
+<section id="family" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">02</span> Where OSINT Fits</div>
+      <h2>One goal, many disciplines: the intelligence family</h2>
+      <p class="lede">Nation-scale intelligence is split into "INTs" by <b>how</b> the information is collected.
+      OSINT is the only member of the family whose raw material anyone can lawfully pick up.</p>
+    </div>
+    <p>For most of the 20th century, OSINT was the junior partner — analysts clipped newspapers while satellites
+    and spy networks did the real work. Today the balance has flipped: so much of life is published online that
+    open sources often supply the majority of the analytic picture, and the classified disciplines are used to
+    fill the remaining gaps. Knowing the family matters because real investigations <b>blend</b> disciplines —
+    an image (IMINT) found by search (OSINT), geolocated by shadows (GEOINT), confirmed by a phone call
+    (HUMINT).</p>
+    <table>
+      <tr><th>Discipline</th><th>Collected from</th><th>Typical example</th></tr>
+      <tr><td class="pcell"><span class="dot-sm" style="background:var(--blue)"></span>HUMINT</td><td>Human sources — interviews, agents, informants</td><td>A defector describing a weapons program</td></tr>
+      <tr><td class="pcell"><span class="dot-sm" style="background:var(--ink-faint)"></span>SIGINT</td><td>Intercepted signals — communications, radar emissions</td><td>Radio traffic revealing troop movements</td></tr>
+      <tr><td class="pcell"><span class="dot-sm" style="background:var(--green)"></span>GEOINT</td><td>Satellite and geospatial imagery</td><td>Before/after images of a construction site</td></tr>
+      <tr><td class="pcell"><span class="dot-sm" style="background:var(--blue)"></span>IMINT</td><td>Photographs — aerial or ground</td><td>A photo of a convoy taken by a witness</td></tr>
+      <tr><td class="pcell"><span class="dot-sm" style="background:var(--ink-faint)"></span>MASINT</td><td>Measurement &amp; signatures — sensors, spectroscopy</td><td>Seismic readings of a nuclear test</td></tr>
+      <tr class="hl"><td class="pcell"><span class="dot-sm" style="background:var(--amber)"></span>OSINT</td><td>Publicly available information of every kind</td><td>A company registry entry linking two shell firms</td></tr>
+    </table>
+    <div class="plaque">
+      <span class="lbl">REAL LIFE — THE JOURNALIST'S BADGE</span>
+      <p>The collective Bellingcat identified the two men accused of the 2018 Skripal poisoning in Salisbury
+      without a single classified source: passport photos in public records, a leaked agency database, car
+      registrations and flight manifests stitched together into a published identification. Everything they used
+      was open — the tradecraft was the difference between noise and proof.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= 03 INTELLIGENCE CYCLE ================= -->
+<section id="cycle">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">03</span> The Method</div>
+      <h2>Five phases turn noise into a finished report</h2>
+      <p class="lede">The <b>intelligence cycle</b> keeps an investigation honest: you define the question before
+      you collect, and you publish with sources before you celebrate. Skip a phase and the gaps show up in court,
+      in the press — or in the post-mortem.</p>
+    </div>
+    <div class="flow">
+      <div class="flow-step"><b>1 · Direction</b>define the question</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>2 · Collection</b>gather, log sources</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>3 · Processing</b>clean &amp; structure</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>4 · Analysis</b>connect &amp; verify</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><b>5 · Dissemination</b>report it onward</div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="console-title"><span class="led live"></span> LIVE SIM — WALK THE INTELLIGENCE CYCLE</div>
+        <span class="sim-tag">every phase has one job and one classic failure</span>
+      </div>
+      <div class="phase-dots" id="cyDots"></div>
+      <div class="phase-card" id="cyCard">
+        <div class="ph-name" id="cyName">Direction</div>
+        <div class="ph-goal" id="cyGoal"></div>
+        <div class="ph-pit" id="cyPit"></div>
+      </div>
+      <div class="controls" style="margin-bottom:0;">
+        <button class="btn small" id="cyPrev">← Prev phase</button>
+        <button class="btn go small" id="cyNext">Next phase →</button>
+        <button class="btn small" id="cyAuto">Auto-run: off</button>
+        <button class="btn small" id="cyReset">Reset</button>
+      </div>
+      <p class="hint">Notice: the report (phase 5) answers the question defined in phase 1 — then raises new
+      questions, which is why the diagram is drawn as a <b>circle</b>, not a line. Real teams run the loop many
+      times on one case.</p>
+    </div>
+
+    <div class="grid2" style="margin-top:40px;">
+      <div>
+        <h3>What makes a good "direction"?</h3>
+        <p>Phase 1 is written down as a set of <b>Priority Information Requirements</b> (PIRs) — short,
+        answerable questions with an owner and a deadline. "Tell me about company X" is not a PIR; "does
+        company X operate internet-facing services outside the EU, and which ones?" is. Every later phase is
+        judged against this list, which is what stops an OSINT project from turning into an endless wiki
+        rabbit hole. Good analysts spend up to a fifth of total effort here, before a single query is typed.</p>
+        <p>The same rigour applies at the end: a finished report separates <b>fact</b> (with source and time),
+        <b>assessment</b> (analyst's interpretation) and <b>confidence</b> (high / moderate / low). Readers must
+        always be able to tell the evidence from the opinion.</p>
+      </div>
+      <div class="plaque">
+        <span class="lbl">REAL LIFE — THE DEADLINE THAT SAVED A STORY</span>
+        <p>A newsroom had 48 hours to verify a viral video. Instead of watching clips for two days, the team
+        spent the first evening writing three PIRs: <i>where</i> was it filmed, <i>when</i>, and <i>was it this
+        war or an earlier one?</i> Those three questions cut the search space so sharply that by midnight the
+        shadows and signage had answered all of them — the video was real footage, but from a flood four years
+        earlier. Direction first is what makes speed possible.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 PASSIVE VS ACTIVE ================= -->
+<section id="posture" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">04</span> Collection Posture</div>
+      <h2>Touch nothing — or leave fingerprints</h2>
+      <p class="lede">Every collection action sits on a spectrum. <b>Passive</b> techniques never contact the
+      target directly, so the target cannot see you. <b>Active</b> techniques interact with the target and are
+      fast and fresh — but they ring bells.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p>Passive collection borrows third parties: search-engine caches, the Wayback Machine, public DNS
+        resolvers, certificate-transparency search engines, and databases like Shodan that already scanned the
+        internet last week. The target's logs record traffic from Google, archive.org and Shodan's crawlers —
+        not from you. Active collection sends <b>your</b> packets at <b>their</b> systems: port scans, login
+        probes, staged phone calls. It returns today's truth, but every packet is attributable.</p>
+        <p>Professional recon almost always runs <b>passive first</b>, squeezing public data until it yields
+        nothing more, and only then going active — inside a written, authorised scope. In a penetration test,
+        the shift from passive to active is a contract boundary: everything before it is invisible to the
+        client's monitoring, everything after it is expected to trigger alerts that the blue team should catch.</p>
+        <table>
+          <tr><th>Action</th><th>Posture</th><th>What the target sees</th></tr>
+          <tr><td>Reading a Google cache copy</td><td class="pcell"><span class="dot-sm" style="background:var(--green)"></span>Passive</td><td>Nothing — you never touched them</td></tr>
+          <tr><td>Searching crt.sh for subdomains</td><td class="pcell"><span class="dot-sm" style="background:var(--green)"></span>Passive</td><td>Nothing — crt.sh holds public CT logs</td></tr>
+          <tr><td>DNS lookup via a public resolver</td><td class="pcell"><span class="dot-sm" style="background:var(--amber)"></span>Mostly passive</td><td>Resolver traffic, not yours</td></tr>
+          <tr><td>Full TCP port scan (nmap)</td><td class="pcell"><span class="dot-sm" style="background:var(--red)"></span>Active</td><td>Firewall hits, IDS alerts, your IP</td></tr>
+          <tr><td>"HR survey" email to staff</td><td class="pcell"><span class="dot-sm" style="background:var(--red)"></span>Active social</td><td>Replies, reports, raised awareness</td></tr>
+        </table>
+      </div>
+      <div class="console" style="box-shadow:none; margin-top:0;">
+        <div class="console-head">
+          <div class="console-title"><span class="led live"></span> LIVE SIM — DETECTION METER</div>
+        </div>
+        <div class="readout-row">
+          <div class="readout" id="dtReadout">target's suspicion<b id="dtWord">UNSEEN</b></div>
+        </div>
+        <div class="meter"><i id="dtBar"></i></div>
+        <div class="controls">
+          <button class="btn go small" id="dtCache">Read cached copy</button>
+          <button class="btn go small" id="dtCT">Third-party cert search</button>
+          <button class="btn small" id="dtDNS">Public DNS query</button>
+          <button class="btn danger small" id="dtScan">Full port scan</button>
+          <button class="btn danger small" id="dtLogin">Probe admin login</button>
+          <button class="btn small" id="dtReset">Reset</button>
+        </div>
+        <div class="log" id="dtLog"><div class="info">You are off-target. Every passive action below the line keeps you there.</div></div>
+        <p class="hint">Watch: passive buttons add <b>0</b> suspicion. The active ones jump the meter — in real
+        life the IDS alert would carry your IP, timestamp and tool fingerprint.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ================= 05 DORKING ================= -->
+<section id="dorking">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">05</span> Search Engine Tradecraft</div>
+      <h2>Google is a database, if you speak its language</h2>
+      <p class="lede">Search engines index far more than they show by default. <b>Dorking</b> — advanced query
+      operators — surfaces forgotten directories, unlinked PDFs and exposed admin panels that a plain query
+      would never rank.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p>Every operator narrows the web by one dimension: <b>where</b> (site:), <b>what type</b>
+        (filetype:), <b>URL shape</b> (inurl:), <b>title</b> (intitle:), <b>body text</b> (intext:) and
+        <b>time</b> (before:/after:). Stack three or four together and a billion pages shrink to a dozen —
+        each one a potential lead. The classic <span class="pill">intitle:"index of"</span> alone finds
+        thousands of open directory listings that their owners never meant to publish.</p>
+        <p>This is the same technique defenders use on themselves: Google your own domain with these operators
+        <i>before</i> an attacker does, and de-index what shouldn't be public. Ethical rule of thumb — dorking
+        your own assets or an authorised scope is diligence; dorking a stranger's systems is where section 10
+        starts to matter.</p>
+        <table>
+          <tr><th>Operator</th><th>Example</th><th>What it does</th></tr>
+          <tr><td class="pcell"><span class="pill">site:</span></td><td>site:example-u.edu</td><td>Only results from one domain</td></tr>
+          <tr><td class="pcell"><span class="pill">filetype:</span></td><td>filetype:xlsx budget</td><td>Only that file type — spreadsheets, PDFs, docs</td></tr>
+          <tr><td class="pcell"><span class="pill">inurl:</span></td><td>inurl:admin login</td><td>Word appears inside the URL path</td></tr>
+          <tr><td class="pcell"><span class="pill">intitle:</span></td><td>intitle:"index of"</td><td>Word appears in the page title</td></tr>
+          <tr><td class="pcell"><span class="pill">"exact"</span></td><td>"confidential — internal"</td><td>Exact phrase match, word order fixed</td></tr>
+          <tr><td class="pcell"><span class="pill">-exclude</span></td><td>-inurl:html</td><td>Remove a whole class of results</td></tr>
+          <tr><td class="pcell"><span class="pill">OR</span></td><td>cv OR resume OR biodata</td><td>Match any of several terms</td></tr>
+          <tr><td class="pcell"><span class="pill">before:/after:</span></td><td>after:2019-01-01</td><td>Restrict to a date window</td></tr>
+        </table>
+      </div>
+      <div class="plaque">
+        <span class="lbl">REAL LIFE — THE FORGOTTEN BACKUP</span>
+        <p>A university's old webmaster once dropped a <span class="pill">backup.zip</span> into a public
+        folder. It contained the whole 2014 CMS, including a plaintext config file. For six years nobody
+        noticed — but Google indexed the listing, and one dork
+        <span class="pill">site:uni.ac.cy intitle:"index of" backup</span> was all it took to surface it.
+        The fix took minutes; the exposure lasted years. Defenders now run these exact queries as routine
+        hygiene.</p>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="console-title"><span class="led live"></span> LIVE SIM — DORK BUILDER</div>
+        <span class="sim-tag">simulated results · real dorks work the same way</span>
+      </div>
+      <div class="chips" id="dbChips"></div>
+      <div class="query-box" id="dbQuery"><span class="placeholder">Click operators below to compose a query…</span></div>
+      <div class="readout-row">
+        <div class="readout amber">findings in scope<b id="dbCount">0</b></div>
+      </div>
+      <div class="stage" id="dbFindings">
+        <p class="hint" style="margin:0;">No operators selected. Add a base <span class="pill">site:</span> first, then narrow.</p>
+      </div>
+      <div class="controls" style="margin-top:14px; margin-bottom:0;">
+        <button class="btn small" id="dbClear">Clear all</button>
+      </div>
+      <p class="hint">Try stacking: <span class="pill">site:</span> + <span class="pill">filetype:xlsx</span>
+      + <span class="pill">-inurl:html</span>. Each operator shrinks the haystack; the findings panel shows what
+      kinds of pages such a query realistically pulls up. Full operator catalogues live in the Google Hacking
+      Database (GHDB).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 06 PEOPLE OSINT ================= -->
+<section id="people" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">06</span> People &amp; Social Footprints</div>
+      <h2>One username is a thread — pull it</h2>
+      <p class="lede">People are creatures of habit: the same handle, the same avatar, the same bio line on five
+      platforms. A single unique username can stitch an entire online identity together.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p>Username enumeration is the fastest pivot in people-OSINT. Tools like <b>Sherlock</b> and
+        <b>WhatsMyName</b> check hundreds of platforms for a given handle in seconds — no login, no request to
+        the person, just profile URLs that either exist or don't. From there, analysts widen the net: who does
+        the account follow, who tags them in photos, which names appear in the same comment threads? Employer
+        and conference bios fill in the offline half — a talk listing ties a handle to a real name, the name to
+        an employer, the employer to an email pattern.</p>
+        <p>Verification is where amateurs fall off. Common names generate false positives that ruin lives when
+        published; the standard is <b>two independent attributes</b> agreeing (same handle <i>and</i> same city,
+        or same avatar hash <i>and</i> same workplace) before any identification is written down. And the
+        discipline runs both ways: recruiters, banks and journalists routinely "ego-search" their own name to
+        know what's out there — try it on yourself after this section.</p>
+      </div>
+      <div>
+        <div class="plaque">
+          <span class="lbl">REAL LIFE — THE STREAMER'S OLD HANDLE</span>
+          <p>An anonymous troll account harassed a municipal official for months. An investigator noticed the
+          account's avatar was a cropped frame from a 2017 indie game — and that a Steam user with the same
+          crop had changed usernames twice, leaving a comment trail back to a personal blog signed with the
+          troll's birthday. No hacking, no breach: four public platforms and one habit — <i>never changing the
+          avatar</i>.</p>
+        </div>
+        <div class="plaque red">
+          <span class="lbl">HARD LIMIT</span>
+          <p>People-OSINT is lawful when the material is public and the purpose is legitimate — verification,
+          security assessment, due diligence. It becomes stalking, doxxing or harassment the moment the output
+          is used to intimidate, locate or expose a private person. Same tools, opposite ethics.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="console-title"><span class="led live"></span> LIVE SIM — USERNAME HUNTER</div>
+        <span class="sim-tag">SIMULATED — no real platforms are queried</span>
+      </div>
+      <div class="controls">
+        <input id="uhInput" type="text" value="shadow_falcon" spellcheck="false" style="flex:1; min-width:200px; font-family:var(--mono); font-size:13px; background:var(--panel2); border:1px solid var(--line); border-radius:7px; color:var(--amber); padding:10px 13px; outline:none;" placeholder="type any username…">
+        <button class="btn go small" id="uhRun">Run check</button>
+        <button class="btn small" id="uhReset">Reset</button>
+      </div>
+      <div class="stage" id="uhBoard"></div>
+      <div class="log" id="uhLog"><div class="info">Type a handle and run the check — results are generated locally from a name hash.</div></div>
+      <p class="hint">Run it twice with different names: the "found" set changes, but the pattern doesn't — a
+      distinctive handle tends to exist or not exist across whole clusters of platforms. Real implementations
+      (Sherlock, WhatsMyName, Maigret) do this against live sites in seconds.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= 07 INFRASTRUCTURE RECON ================= -->
+<section id="infra">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">07</span> Infrastructure Recon</div>
+      <h2>Every domain leaves a paper trail</h2>
+      <p class="lede">A domain name is a thread tied to registration records, DNS answers, certificate logs and
+      hosting fingerprints. Pull it and an organisation's real internet estate unfolds — often including the
+      parts nobody remembers anymore.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p><b>WHOIS / RDAP</b> records show who registered a domain, when, and for how long — a freshly
+        registered look-alike domain ("paypa1-verify.com") is a phishing tell, while a 15-year registration
+        signals an established brand. Privacy redaction hides most personal details today, but the registrar,
+        dates and name servers still speak.</p>
+        <p><b>DNS</b> is a free configuration disclosure: A records point at hosting, MX records name the mail
+        provider, TXT records expose SPF rules and third-party verification tokens. <b>Certificate
+        Transparency</b> logs (searchable at crt.sh) list every TLS certificate ever issued for a domain — which
+        means every subdomain anyone ever got a cert for, including the staging box everyone forgot. Feed those
+        into passive-DNS and services like Shodan or Censys, and the picture becomes: which servers, which
+        software versions, which ports — all collected by someone else's scanners weeks ago.</p>
+        <div class="flow">
+          <div class="flow-step"><b>Domain</b>WHOIS dates</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><b>Subdomains</b>CT logs</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><b>IP / ASN</b>hosting &amp; netblocks</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><b>Services</b>banners, versions</div>
+        </div>
+      </div>
+      <div class="plaque">
+        <span class="lbl">REAL LIFE — THE EXPIRED SUBDOMAIN</span>
+        <p>A SaaS company once pointed <span class="pill">aws-support.vendorname.com</span> at an EC2 instance,
+        then shut the instance down and let the DNS record lapse — but not the domain trust. Attackers claimed
+        the same hostname on AWS, served content from the company's own subdomain, and inherited cookies set
+        for that name. "Subdomain takeover" is found purely from public DNS and cloud listings: a map of every
+        dangling record is sitting in public data, waiting for whoever looks first.</p>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="console-title"><span class="led live"></span> LIVE SIM — DOMAIN FOOTPRINT</div>
+        <span class="sim-tag">SIMULATED data for three fictional companies</span>
+      </div>
+      <div class="controls">
+        <button class="btn small dTarget" data-d="0">northwind-logistics.com</button>
+        <button class="btn small dTarget" data-d="1">aquila-fintech.io</button>
+        <button class="btn small dTarget" data-d="2">redteam-lab.dev</button>
+        <button class="btn small" id="dfReset">Clear</button>
+      </div>
+      <div class="readout-row">
+        <div class="readout green">subdomains found<b id="dfSub">—</b></div>
+        <div class="readout amber">attack surface notes<b id="dfPiv">—</b></div>
+        <div class="readout red">hosting / ASN<b id="dfAsn">—</b></div>
+      </div>
+      <div class="cards">
+        <div class="card"><h4>WHOIS / RDAP (simulated)</h4><div class="empty" id="dfWhois">— pick a domain above —</div></div>
+        <div class="card"><h4>DNS RECORDS (simulated)</h4><div class="empty" id="dfDns">— pick a domain above —</div></div>
+        <div class="card"><h4>SUBDOMAINS via CT LOGS (simulated)</h4><div class="empty" id="dfSd">— pick a domain above —</div></div>
+        <div class="card"><h4>CERTIFICATES (simulated)</h4><div class="empty" id="dfCert">— pick a domain above —</div></div>
+      </div>
+      <div class="log" id="dfLog"><div class="info">All queries are answered locally — in the field, the same steps run against WHOIS servers, public resolvers, crt.sh and Shodan.</div></div>
+      <p class="hint">Read the cards as an analyst would: <b>aquila</b> shows a fresh domain with strict SPF —
+      expected for fintech. <b>redteam-lab</b> shows a wildcard cert and a forgotten staging host — a classic
+      lab mistake. Same queries, three very different stories.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 GEOINT ================= -->
+<section id="geoint" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">08</span> Imagery &amp; GEOINT</div>
+      <h2>A photo is a dataset wearing a picture</h2>
+      <p class="lede">Images carry structured metadata inside, and physics outside: shadow angles betray the
+      time of day, landmarks betray the place, and search engines betray every earlier appearance of the same
+      picture.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p>Start inside the file: <b>EXIF metadata</b> can name the camera model, the exact capture timestamp,
+        sometimes GPS coordinates and the editing software. Photos shared through platforms usually have EXIF
+        stripped — but screenshots re-shared carelessly, or files straight from a phone or DSLR, often keep it
+        all. <b>Reverse image search</b> (Google Lens, TinEye, Yandex) then answers the oldest question in
+        verification: has this picture existed <i>before</i> this claim was made?</p>
+        <p>Outside the file, physics takes over. <b>Shadow analysis</b> — direction and length, checked against
+        tools like SunCalc — puts an approximate time and latitude on any outdoor photo. Vegetation, road
+        markings, signage and mountain skylines narrow the location; matching them against satellite imagery in
+        Google Earth closes it. This is <b>chronolocation</b>, and it is how a single frame gets pinned to a
+        street corner within minutes.</p>
+        <p>Professional verification runs a fixed checklist: <b>provenance</b> (who shot it and where did you
+        get it), <b>source</b> (is the uploader first-hand), <b>date</b> (metadata, weather, shadows),
+        <b>location</b> (landmarks, geolocation) and <b>motive</b> (why is it being shared now). A claim must
+        survive all five — not just the ones it passes.</p>
+      </div>
+      <div class="plaque">
+        <span class="lbl">REAL LIFE — THE WRONG-CITY RALLY</span>
+        <p>During a 2020 election, a photo of an enormous rally circulated with the caption "yesterday in our
+        city." Reverse image search found the identical photo on stock-agency sites — shot at a 2015 concert
+        4,000 km away. Total verification time: ninety seconds, one search. Modern misinformation rarely
+        survives a full checklist; it survives <i>not being checked</i>.</p>
+      </div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <div class="console-title"><span class="led live"></span> LIVE SIM — PHOTO VERIFICATION BENCH</div>
+        <span class="sim-tag">SIMULATED scene &amp; metadata</span>
+      </div>
+      <div class="photo-grid">
+        <div>
+          <div class="photo">
+            <div class="sun"></div>
+            <div class="tower"></div>
+            <div class="shadow"></div>
+            <div class="water"></div>
+            <div class="cap"><b>CLAIM:</b> "Flooding in Veloz City this morning — shot an hour ago"</div>
+          </div>
+          <div class="controls" style="margin-top:12px; margin-bottom:0;">
+            <button class="btn small" id="pvExif">Show EXIF: off</button>
+            <button class="btn small" id="pvReset">Reset case</button>
+          </div>
+        </div>
+        <div>
+          <div id="pvMeta" style="display:none;">
+            <div class="card" style="margin-bottom:14px;">
+              <h4>EXIF METADATA (simulated)</h4>
+              <div class="kv"><span>Camera</span><b>Canon EOS 90D</b></div>
+              <div class="kv"><span>DateTimeOriginal</span><b>2022-08-14 07:41:22</b></div>
+              <div class="kv"><span>GPS</span><b>41.0082 N, 28.9784 E</b></div>
+              <div class="kv"><span>Software</span><b>Adobe Lightroom 11.4</b></div>
+              <div class="kv"><span>File written</span><b>2022-08-14 (before claim by ~3 yrs)</b></div>
+            </div>
+          </div>
+          <div class="chips" id="pvChecks" style="margin-bottom:0;"></div>
+          <div class="verdict" id="pvVerdict"></div>
+        </div>
+      </div>
+      <div class="log" id="pvLog"><div class="info">Case file open. The claim says "this morning" — check everything.</div></div>
+      <p class="hint">Run all four checks and read the verdict: the metadata alone already contradicts the
+      claim, and the shadow confirms the sun position matches the <i>old</i> timestamp, not the claimed one.
+      That is how fast a viral image should die.</p>
+    </div>
+  </div>
+</section>
+<!-- ================= 09 TOOLKIT ================= -->
+<section id="tools">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">09</span> The Toolkit</div>
+      <h2>Instruments on the watchtower desk</h2>
+      <p class="lede">OSINT tools change every quarter; the categories never do. Learn what each category is
+      <i>for</i>, and you can swap tools freely as they come and go.</p>
+    </div>
+    <p>A tool is only an accelerator for a step of the cycle you already understand — dork syntax without a PIR
+    just finds random trivia. The table below maps the standard instruments to the questions they answer. Start
+    with the free layers of each service before paying for anything; most professional workflows run on a
+    browser, a note-taking discipline, and two or three specialist sites.</p>
+    <table>
+      <tr><th>Category</th><th>Instruments</th><th>Question it answers</th></tr>
+      <tr><td>Search &amp; dorking</td><td>Google, Bing, Yandex, DuckDuckGo, GHDB</td><td>What did someone accidentally publish?</td></tr>
+      <tr><td>People &amp; handles</td><td>Sherlock, WhatsMyName, Epieos, social graph pivots</td><td>Where does this identity appear?</td></tr>
+      <tr><td>Email &amp; breaches</td><td>HaveIBeenPwned, EmailRep, Debounce</td><td>Is this address real, live, or breached?</td></tr>
+      <tr><td>Domains &amp; IP</td><td>Shodan, Censys, crt.sh, ViewDNS, urlscan.io, WHOIS/RDAP</td><td>What infrastructure stands behind this name?</td></tr>
+      <tr><td>Imagery &amp; maps</td><td>Google Earth Pro, SunCalc, TinEye, InVID-WeVerify</td><td>Where and when was this photo taken?</td></tr>
+      <tr><td>Frameworks</td><td>Maltego, SpiderFoot, Recon-ng, theHarvester, OSINT Framework</td><td>How do hundreds of pivots stay organised?</td></tr>
+      <tr><td>Archives &amp; files</td><td>Wayback Machine, exiftool, Metagoofil, document metadata</td><td>What did this page/file look like earlier?</td></tr>
+    </table>
+    <div class="grid2" style="margin-top:30px;">
+      <div class="plaque green" style="margin:0;">
+        <span class="lbl">REAL LIFE — ONE TOOL, TEN MINUTES</span>
+        <p>An analyst is handed a single email address from a suspicious invoice. HaveIBeenPwned says the
+        address appeared in the 2019 collection #1 dump; a dork for the address surfaces a GitHub issue where
+        the same developer asked about "invoice template" code; GitHub reveals the real name; the name leads to
+        a conference bio with a photo and employer. Ten minutes, four tools, one pivot chain — and no packet
+        sent to the suspect.</p>
+      </div>
+      <div class="plaque" style="margin:0;">
+        <span class="lbl">PRACTICE GROUNDS</span>
+        <p>Legal playgrounds exist for every category: <b>GeoGuessr</b> and <b>Quiztime</b> challenges for
+        geolocation, <b>HackTheBox / TryHackMe OSINT rooms</b> for tradecraft, <b>YourOwnDomain.com</b> for
+        dorking hygiene, and your own name for people-OSINT. Skill comes from reps on legitimate targets.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 10 ETHICS & OPSEC ================= -->
+<section id="ethics" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker"><span class="tag">10</span> Ethics, Law &amp; Self-Defence</div>
+      <h2>Just because it's public doesn't mean it's a free-for-all</h2>
+      <p class="lede">OSINT sits on a line most people never see. On one side: verification, security and
+      journalism. On the other: harassment and stalking that used the identical techniques. What separates them
+      is authorization, proportion and restraint.</p>
+    </div>
+    <div class="grid2">
+      <div>
+        <p><b>The legal floor.</b> Publicly accessible is not the same as free to exploit: unauthorised access
+        beyond what a system offers the public is a crime almost everywhere (the Computer Fraud and Abuse Act
+        in the US, the IT Act in India, comparable statutes across the EU), and data-protection law — GDPR,
+        India's DPDP Act 2023 — restricts how personal data may be processed regardless of where it was found.
+        Platform terms of service add another layer, and anti-stalking law applies to collection "just for
+        curiosity." Engaged investigations need a <b>written scope and authorisation</b> before the first
+        query; personal projects need the <b>minimum-necessary</b> principle — collect only what the question
+        requires, and stop when it is answered.</p>
+        <p><b>Your own footprint.</b> The investigator is also a target. Research from your main browser and
+        the target's analytics learn you instantly: your accounts, your interests, your IP. Standard tradecraft
+        is a dedicated <b>alias identity</b> with its own email and avatar, a separate browser profile or VM,
+        a VPN or Tor for anything sensitive, and above all <b>non-interaction</b> — never like, follow, reply
+        or visit a profile from a personal account, because every interaction is a notification to the other
+        side that someone is looking. Log every query as you make it: your future self (or your lawyer) will
+        need the trail.</p>
+      </div>
+      <div>
+        <div class="console" style="box-shadow:none; margin-top:0;">
+          <div class="console-head">
+            <div class="console-title"><span class="led live"></span> LIVE SIM — OPSEC SELF-AUDIT</div>
+          </div>
+          <div class="readout-row">
+            <div class="readout" id="oaReadout">exposure risk<b id="oaWord">HIGH</b></div>
+            <div class="readout green">controls in place<b id="oaCount">0 / 7</b></div>
+          </div>
+          <div class="meter"><i id="oaBar" style="background:var(--red);"></i></div>
+          <div class="chips" id="oaChips" style="margin-bottom:0;"></div>
+          <div class="log" id="oaLog"><div class="bad">Baseline: browsing with your main identity, no logging. Every unticked control is a window.</div></div>
+          <p class="hint">Tick controls like you would before a real engagement. The meter falls as your
+          identity separates from your investigation — in the field this list is a pre-flight check, not a
+          quiz.</p>
+        </div>
+        <div class="plaque" style="margin-top:18px;">
+          <span class="lbl">THE GOLDEN RULE</span>
+          <p>Before any collection step, ask: <i>could I explain this action, out loud, in open court — to the
+          person I investigated?</i> If yes, proceed and document. If no, the technique was the problem, not
+          the target.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap-narrow">
+    <p style="font-family:var(--mono); font-size:11.5px; color:var(--brass); margin-bottom:10px;">WATCHTOWER — END OF SHIFT</p>
+    <p>Open Source Intelligence (OSINT) — built as a hands-on companion for the classroom. Every simulation on
+    this page runs entirely in your browser with simulated data; reload any section to reset it and try a
+    different sequence of moves. Collect only what is lawful, verify everything twice, and log as you go.</p>
+    <div class="toc-strip">
+      <a href="#intro">What is OSINT</a><a href="#family">INT Family</a><a href="#cycle">Intel Cycle</a>
+      <a href="#posture">Passive vs Active</a><a href="#dorking">Dorking</a><a href="#people">People</a>
+      <a href="#infra">Infrastructure</a><a href="#geoint">GEOINT</a><a href="#tools">Toolkit</a><a href="#ethics">Ethics</a>
+    </div>
+  </div>
+</footer>
+<script>
+/* ================= shared helpers ================= */
+function logTo(el, text, cls){
+  const d=document.createElement('div'); d.className=cls||''; d.textContent=text;
+  el.prepend(d);
+  while(el.children.length>60) el.removeChild(el.lastChild);
+}
+function hashStr(s){
+  let h=0;
+  for(let i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i))>>>0; }
+  return h;
+}
+
+/* ================= 03 — intelligence cycle stepper ================= */
+(function(){
+  const phases=[
+    {n:'1 · Direction', g:'Define the information need: short, answerable questions (PIRs) with an owner and a deadline. Everything later is judged against this list.', p:'PITFALL — "find everything about X" is not a question; it drowns the investigation.'},
+    {n:'2 · Collection', g:'Gather raw material from public sources: search engines, registries, archives, social platforms, imagery. Log every URL, query and timestamp as you go.', p:'PITFALL — collecting without logging produces evidence you can never cite.'},
+    {n:'3 · Processing', g:'Clean, translate, normalise and structure what you collected: extract entities, build timelines, lay out link charts, index documents.', p:'PITFALL — one OCR or translation error quietly poisons every conclusion downstream.'},
+    {n:'4 · Analysis', g:'Connect the dots against the PIRs: test rival hypotheses, grade source reliability, attach a confidence level to every claim you form.', p:'PITFALL — confirmation bias: hunting only for what supports your first theory.'},
+    {n:'5 · Dissemination', g:'Deliver the report to whoever needs it: facts separated from assessments, sources attached, confidence declared, next questions raised.', p:'PITFALL — sitting on findings, or dumping raw data instead of conclusions.'}
+  ];
+  let cur=0, timer=null;
+  const dots=document.getElementById('cyDots'),
+        nameEl=document.getElementById('cyName'),
+        goalEl=document.getElementById('cyGoal'),
+        pitEl=document.getElementById('cyPit'),
+        autoBtn=document.getElementById('cyAuto');
+  function render(){
+    nameEl.textContent=phases[cur].n;
+    goalEl.textContent=phases[cur].g;
+    pitEl.textContent=phases[cur].p;
+    nameEl.style.color = cur===3 ? 'var(--amber)' : 'var(--ink)';
+    [...dots.children].forEach((d,i)=>{
+      d.className='pdot'+(i===cur?' cur':(i<cur?' past':''));
+    });
+  }
+  function buildDots(){
+    dots.innerHTML='';
+    phases.forEach((ph,i)=>{
+      const d=document.createElement('div');
+      d.className='pdot'; d.textContent=ph.n;
+      d.onclick=()=>{ cur=i; render(); };
+      dots.appendChild(d);
+    });
+  }
+  document.getElementById('cyNext').onclick=()=>{ cur=(cur+1)%phases.length; render(); };
+  document.getElementById('cyPrev').onclick=()=>{ cur=(cur+phases.length-1)%phases.length; render(); };
+  document.getElementById('cyReset').onclick=()=>{ cur=0; stopAuto(); render(); };
+  function stopAuto(){ if(timer){ clearInterval(timer); timer=null; autoBtn.textContent='Auto-run: off'; } }
+  autoBtn.onclick=()=>{
+    if(timer){ stopAuto(); return; }
+    autoBtn.textContent='Auto-run: on';
+    timer=setInterval(()=>{ cur=(cur+1)%phases.length; render(); },1800);
+  };
+  buildDots(); render();
+})();
+
+/* ================= 04 — detection meter ================= */
+(function(){
+  let val=0;
+  const bar=document.getElementById('dtBar'), word=document.getElementById('dtWord'),
+        box=document.getElementById('dtReadout'), log=document.getElementById('dtLog');
+  function render(){
+    bar.style.width=Math.min(100,val)+'%';
+    let w,c,bc;
+    if(val<20){ w='UNSEEN'; c='var(--green)'; }
+    else if(val<60){ w='NOTICED'; c='var(--amber)'; }
+    else { w='FLAGGED'; c='var(--red)'; }
+    word.textContent=w; word.style.color=c;
+    bar.style.background=c;
+    box.className='readout'+(val<20?' green':(val<60?' amber':' red'));
+  }
+  function add(label, amt, passive){
+    val=Math.min(120,val+amt);
+    render();
+    logTo(log, passive
+      ? '[passive] '+label+' — no contact with target, suspicion +0'
+      : '[active]  '+label+' — target systems logged you, suspicion +'+amt,
+      passive?'ok':'bad');
+  }
+  document.getElementById('dtCache').onclick=()=>add('read Google/Wayback cached copy',0,true);
+  document.getElementById('dtCT').onclick=()=>add('crt.sh certificate-transparency search',0,true);
+  document.getElementById('dtDNS').onclick=()=>add('DNS query via public resolver (8.8.8.8)',4,false);
+  document.getElementById('dtScan').onclick=()=>add('nmap full TCP scan of 65,535 ports',22,false);
+  document.getElementById('dtLogin').onclick=()=>add('credential probe against admin login page',30,false);
+  document.getElementById('dtReset').onclick=()=>{ val=0; render(); logTo(log,'Investigation reset — meter back to UNSEEN.','info'); };
+  render();
+})();
+
+/* ================= 05 — dork builder ================= */
+(function(){
+  const chips=[
+    {q:'site:example-u.edu',        f:{t:'Legacy timetable portal, indexed in 2019 and never removed', u:'example-u.edu/department/timetable/'}},
+    {q:'filetype:xlsx',             f:{t:'Scholarship awards spreadsheet — 412 student names and emails', u:'example-u.edu/finance/scholarship-awards-2023.xlsx'}},
+    {q:'inurl:admin',               f:{t:'Unbranded CMS login page on a staging subdomain', u:'cms.example-u.edu/admin/'}},
+    {q:'intitle:"index of"',        f:{t:'Open directory listing — 1,204 files browsable', u:'example-u.edu/library/uploads/'}},
+    {q:'intext:"confidential"',     f:{t:'Internal memo marked "Confidential — do not distribute", publicly indexed', u:'example-u.edu/policy/internal-notes.docx'}},
+    {q:'-inurl:html',               f:{t:'Annual report PDF surfaced once html pages are excluded', u:'example-u.edu/research/annual-report-2024.pdf'}}
+  ];
+  const board=document.getElementById('dbChips'), qBox=document.getElementById('dbQuery'),
+        cnt=document.getElementById('dbCount'), stage=document.getElementById('dbFindings');
+  const state=chips.map(()=>false);
+  function render(){
+    [...board.children].forEach((c,i)=>c.classList.toggle('on',state[i]));
+    const sel=chips.filter((c,i)=>state[i]);
+    qBox.innerHTML = sel.length
+      ? sel.map(c=>'<span>'+c.q+'</span>').join(' ')
+      : '<span class="placeholder">Click operators below to compose a query…</span>';
+    cnt.textContent=sel.length;
+    if(!sel.length){
+      stage.innerHTML='<p class="hint" style="margin:0;">No operators selected. Add a base <span class="pill">site:</span> first, then narrow.</p>';
+      return;
+    }
+    stage.innerHTML='';
+    sel.forEach(c=>{
+      const d=document.createElement('div'); d.className='finding';
+      d.innerHTML='<div class="ic">▸</div><div><div class="t">'+c.f.t+'</div><div class="u">'+c.f.u+'</div></div>';
+      stage.appendChild(d);
+    });
+  }
+  chips.forEach((c,i)=>{
+    const b=document.createElement('div');
+    b.className='chip'; b.textContent=c.q;
+    b.onclick=()=>{ state[i]=!state[i]; render(); };
+    board.appendChild(b);
+  });
+  document.getElementById('dbClear').onclick=()=>{ state.fill(false); render(); };
+  render();
+})();
+
+/* ================= 06 — username hunter (simulated) ================= */
+(function(){
+  const platforms=['GitHub','Reddit','X / Twitter','Telegram','Medium','Steam','Instagram','Hacker News'];
+  const board=document.getElementById('uhBoard'), log=document.getElementById('uhLog'),
+        input=document.getElementById('uhInput');
+  function build(){
+    board.innerHTML='';
+    platforms.forEach(p=>{
+      const d=document.createElement('div');
+      d.className='plat pending';
+      d.innerHTML='<span class="nm">'+p+'</span><span class="dt">…</span>';
+      board.appendChild(d);
+    });
+  }
+  function run(){
+    const name=(input.value||'').trim();
+    if(!name){ logTo(log,'Type a username first.','info'); return; }
+    build();
+    const h=hashStr(name.toLowerCase());
+    let delay=250;
+    platforms.forEach((p,i)=>{
+      const found=((h>>(i*3))&1)===1 || (i===0 && ((h>>7)&1)===1); // deterministic per name
+      const year=2010+((h>>(i+4))%14);
+      setTimeout(()=>{
+        const row=board.children[i];
+        if(found){
+          row.className='plat found';
+          row.children[1].textContent='FOUND — joined ~'+year;
+          logTo(log,'[+] '+name+' on '+p+' — profile exists (simulated).','ok');
+        }else{
+          row.className='plat absent';
+          row.children[1].textContent='no profile';
+          logTo(log,'[-] '+name+' on '+p+' — not present.','');
+        }
+      }, delay);
+      delay+=320;
+    });
+    setTimeout(()=>{ logTo(log,'Scan complete: '+board.querySelectorAll('.found').length+' of '+platforms.length+' platforms matched (simulated).','info'); }, delay+150);
+  }
+  document.getElementById('uhRun').onclick=run;
+  input.addEventListener('keydown',e=>{ if(e.key==='Enter') run(); });
+  document.getElementById('uhReset').onclick=()=>{ build(); logTo(log,'Board reset.','info'); };
+  build();
+})();
+
+/* ================= 07 — domain footprint (simulated presets) ================= */
+(function(){
+  const data=[
+    { whois:[['Registrar','CloudNord Ltd'],['Created','2009-03-11'],['Expires','2027-03-11'],['Name servers','ns1/ns2.cloudnord.net']],
+      dns:[['A','203.0.113.42'],['MX','10 mail.northwind-logistics.com'],['TXT/SPF','v=spf1 include:_spf.vendor-mail.com -all'],['NS','ns1.cloudnord.net']],
+      sub:['mail.northwind-logistics.com','portal.northwind-logistics.com','track.northwind-logistics.com','vpn.northwind-logistics.com'],
+      cert:[['Leaf CN','northwind-logistics.com'],['Issuer','Let\u2019s Encrypt R11'],['SAN entries','4 names'],['Newest cert','2025-11-02']],
+      asn:'AS64512 · VendorCloud EU' },
+    { whois:[['Registrar','AquilaGuard Registry'],['Created','2025-08-04'],['Expires','2026-08-04'],['Name servers','ns1/ns2.aquilaguard.io']],
+      dns:[['A','198.51.100.7'],['MX','10 aquila-fintech-io.mail.protection.outlook.com'],['TXT/SPF','v=spf1 -all (strict, no third-party mail)'],['NS','ns1.aquilaguard.io']],
+      sub:['api.aquila-fintech.io','staging.aquila-fintech.io','docs.aquila-fintech.io'],
+      cert:[['Leaf CN','aquila-fintech.io'],['Issuer','DigiCert TLS RSA'],['SAN entries','2 names'],['Newest cert','2025-12-19']],
+      asn:'AS64514 · MetroEdge US-East' },
+    { whois:[['Registrar','NameSilo'],['Created','2018-06-22'],['Expires','2026-06-22'],['Name servers','curitiba.porkbun.com']],
+      dns:[['A','192.0.2.88'],['MX','— (none configured)'],['TXT/SPF','v=spf1 ?all (weak, allows any sender)'],['NS','curitiba.porkbun.com']],
+      sub:['ctf.redteam-lab.dev','staging.redteam-lab.dev','old-wiki.redteam-lab.dev','git.redteam-lab.dev','vpn.redteam-lab.dev'],
+      cert:[['Leaf CN','*.redteam-lab.dev (wildcard)'],['Issuer','Let\u2019s Encrypt R11'],['SAN entries','wildcard + 3 names'],['Newest cert','2026-01-08']],
+      asn:'AS64518 · BudgetHost NL' }
+  ];
+  const notes=['mail on vendor cloud + 4 named services = tight estate','fresh domain, strict SPF — new but disciplined','wildcard cert + stale wiki + weak SPF = takeover bait'];
+  const log=document.getElementById('dfLog');
+  const el={sub:document.getElementById('dfSub'), piv:document.getElementById('dfPiv'), asn:document.getElementById('dfAsn'),
+            whois:document.getElementById('dfWhois'), dns:document.getElementById('dfDns'),
+            sd:document.getElementById('dfSd'), cert:document.getElementById('dfCert')};
+  function fillCard(node, pairs){
+    node.classList.remove('empty');
+    node.innerHTML=pairs.map(p=>'<div class="kv"><span>'+p[0]+'</span><b>'+p[1]+'</b></div>').join('');
+  }
+  function load(i){
+    const d=data[i];
+    el.sub.textContent=d.sub.length; el.piv.textContent=(i+2)+' notes'; el.asn.textContent=d.asn;
+    fillCard(el.whois,d.whois); fillCard(el.dns,d.dns); fillCard(el.cert,d.cert);
+    el.sd.classList.remove('empty');
+    el.sd.innerHTML=d.sub.map(s=>'<div class="kv"><span>CT log</span><b>'+s+'</b></div>').join('');
+    const msgs=[
+      ['WHOIS query (simulated) for '+['northwind-logistics.com','aquila-fintech.io','redteam-lab.dev'][i]+'…','info'],
+      ['DNS records fetched from public resolver (simulated).','ok'],
+      ['Certificate transparency logs enumerated (simulated).','ok'],
+      ['Analyst note: '+notes[i],'info']];
+    msgs.forEach((m,k)=>setTimeout(()=>logTo(log,m[0],m[1]), k*380));
+  }
+  document.querySelectorAll('.dTarget').forEach(b=>{
+    b.onclick=()=>{ el.whois.classList.add('empty'); el.whois.textContent='— pick a domain above —';
+      el.dns.classList.add('empty'); el.dns.textContent='— pick a domain above —';
+      el.sd.classList.add('empty'); el.sd.textContent='— pick a domain above —';
+      el.cert.classList.add('empty'); el.cert.textContent='— pick a domain above —';
+      el.sub.textContent='—'; el.piv.textContent='—'; el.asn.textContent='—';
+      load(parseInt(b.dataset.d,10)); };
+  });
+  document.getElementById('dfReset').onclick=()=>{
+    ['dfWhois','dfDns','dfSd','dfCert'].forEach(id=>{ const n=document.getElementById(id); n.classList.add('empty'); n.textContent='— pick a domain above —'; });
+    el.sub.textContent='—'; el.piv.textContent='—'; el.asn.textContent='—';
+    logTo(log,'Cleared.','info');
+  };
+})();
+
+/* ================= 08 — photo verification bench ================= */
+(function(){
+  const checks=[
+    {n:'Reverse image search', msg:'TinEye: identical frame posted on stock sites in 2019 — predates the claim.'},
+    {n:'Shadow analysis',      msg:'Shadow points lower-left; sun azimuth matches early-morning Aug 2022, not "this morning".'},
+    {n:'Landmark match',       msg:'Tower silhouette + waterfront match Istanbul, not Veloz City.'},
+    {n:'Trace first upload',   msg:'Earliest public appearance: 2022-08-15, a travel blog — caption "morning over the Bosphorus".'}
+  ];
+  const board=document.getElementById('pvChecks'), verdict=document.getElementById('pvVerdict'),
+        log=document.getElementById('pvLog'), meta=document.getElementById('pvMeta'),
+        exifBtn=document.getElementById('pvExif');
+  const done=checks.map(()=>false);
+  function render(){
+    [...board.children].forEach((c,i)=>c.classList.toggle('done',done[i]));
+    exifBtn.textContent='Show EXIF: '+(meta.style.display==='none'?'off':'on');
+    if(done.every(Boolean)){
+      verdict.className='verdict show';
+      verdict.innerHTML='<b>VERDICT — REPURPOSED FOOTAGE.</b> EXIF says the photo was shot 2022-08-14 in Istanbul '
+        +'(GPS 41.0082 N, 28.9784 E), roughly three years before the flood claim and ~2,100 km away. Reverse search '
+        +'and shadow analysis agree. The picture is real; the story attached to it is not.';
+    }
+  }
+  checks.forEach((c,i)=>{
+    const b=document.createElement('div');
+    b.className='chip'; b.textContent=c.n;
+    b.onclick=()=>{
+      if(done[i]) return;
+      done[i]=true; render();
+      logTo(log,'[check] '+c.msg, i===3?'info':'');
+    };
+    board.appendChild(b);
+  });
+  exifBtn.onclick=()=>{
+    const showing = meta.style.display==='none';
+    meta.style.display = showing ? 'block' : 'none';
+    exifBtn.textContent='Show EXIF: '+(showing?'on':'off');
+    if(showing) logTo(log,'[exif] DateTimeOriginal = 2022-08-14 07:41 — the claim says "an hour ago". Mismatch.','bad');
+  };
+  document.getElementById('pvReset').onclick=()=>{
+    done.fill(false);
+    verdict.className='verdict'; verdict.innerHTML='';
+    meta.style.display='none'; render();
+    logTo(log,'Case reset. Claim on the table: "Flooding in Veloz City this morning."','info');
+  };
+  render();
+})();
+
+/* ================= 10 — opsec self-audit ================= */
+(function(){
+  const items=[
+    'Dedicated alias identity (name, email, avatar)',
+    'Separate browser profile or research VM',
+    'VPN / Tor on for all research traffic',
+    'No interaction with target content (no likes, follows, replies)',
+    'Every query logged with timestamp',
+    'Platform ToS and local law checked for this case',
+    'Written scope, questions and end date defined'
+  ];
+  const board=document.getElementById('oaChips'), bar=document.getElementById('oaBar'),
+        word=document.getElementById('oaWord'), cnt=document.getElementById('oaCount'),
+        box=document.getElementById('oaReadout'), log=document.getElementById('oaLog');
+  const done=items.map(()=>false);
+  function render(){
+    [...board.children].forEach((c,i)=>c.classList.toggle('done',done[i]));
+    const n=done.filter(Boolean).length;
+    cnt.textContent=n+' / 7';
+    const risk=Math.round((7-n)/7*100);
+    bar.style.width=risk+'%';
+    let w,c;
+    if(n>=5){ w='LOW'; c='var(--green)'; }
+    else if(n>=3){ w='MEDIUM'; c='var(--amber)'; }
+    else { w='HIGH'; c='var(--red)'; }
+    word.textContent=w; word.style.color=c; bar.style.background=c;
+    box.className='readout'+(n>=5?' green':(n>=3?' amber':' red'));
+  }
+  items.forEach((t,i)=>{
+    const b=document.createElement('div');
+    b.className='chip'; b.textContent=t;
+    b.onclick=()=>{
+      done[i]=!done[i]; render();
+      logTo(log, (done[i]?'[+] control in place — ':'[-] control dropped — ')+t, done[i]?'ok':'bad');
+    };
+    board.appendChild(b);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
